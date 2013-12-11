@@ -12,7 +12,7 @@ if instr(inlayer, '.') > 0 THEN
   v_owner := substr(inlayer,1,instr(inlayer,'.')-1);
   v_table := substr(inlayer,instr(inlayer,'.')+1, length(inlayer));
 else
-  v_owner := 'METROMAP';
+  v_owner := sys_context('userenv','current_schema');
   v_table := inlayer;
 end if;
 
