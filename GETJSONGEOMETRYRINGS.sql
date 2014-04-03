@@ -19,8 +19,8 @@ end;
 
 function point2Char(in_point sde.ST_Point) return varchar2 as
 begin
-select sde.st_X(in_point), sde.ST_Y(in_point) into v_x, v_y from dual;
-return '[' || to_char(v_x,'fm9999999.999999') || ',' || to_char(v_y,'fm9999999.999999') || ']' || chr(10);
+  select sde.st_X(in_point), sde.ST_Y(in_point) into v_x, v_y from dual;
+  return '[' || to_char(v_x,'fm9999999.999999') || ',' || to_char(v_y,'fm9999999.999999') || ']' || chr(10);
 end;
 
 Begin 
@@ -44,28 +44,31 @@ app(v_clob, v_vc, point2char(temppoint) || ']');
 select sde.st_NumInteriorRing(in_polygon) into v_numinteriorrings from dual;
 
 if v_numinteriorrings > 0 then
-	app(v_clob, v_vc, ',' || chr(10) || '[');
+	app(v_clob, v_vc, ',' || chr(10) );
 
 	for ring in 1..v_numinteriorrings Loop --ring 0 is the exterior ring so we start with 1
-		select sde.st_InteriorRingN(in_polygon, ring) into v_ring from dual;
-		select sde.st_numpoints(v_ring) into numpoints from dual;
+          app(v_clob, v_vc, '[' );
+          select sde.st_InteriorRingN(in_polygon, ring) into v_ring from dual;
+          select sde.st_numpoints(v_ring) into numpoints from dual;
 
 	  for point in 1..(numpoints-1) Loop
-		  select sde.st_pointn(v_ring, point) into temppoint from dual;
-		  app(v_clob, v_vc, point2char(temppoint) || ',');
+            select sde.st_pointn(v_ring, point) into temppoint from dual;
+            app(v_clob, v_vc, point2char(temppoint) || ',');
 	  end loop;
-	  
+          
+	  dbms_output.put_line('Ring ' || ring || ', number of rings: ' || v_numinteriorrings);
+          
           /* Final point and closing bracket */
 	  select sde.st_pointn(v_ring, numpoints) into temppoint from dual;
 	  app(v_clob, v_vc, point2char(temppoint) || ']');
-	  
-          if ring <> v_numinteriorrings then
-          v_clob := v_clob || ',';
-          end if;
           
+	  --v_clob := v_clob || v_vc;
+          if ring <> v_numinteriorrings then
+            app(v_clob, v_vc, ',');
+          end if;
 	End Loop;
 end if;
-
+-- Anything left over 
 v_clob := v_clob || v_vc;
 return v_clob;
 end;
